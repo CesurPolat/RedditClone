@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:reddit_clone/drawer.dart';
+import 'package:video_player/video_player.dart';
 import 'package:reddit_clone/welcome.dart';
 
 void main() {
@@ -36,6 +36,19 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
 
   int _selectedIndex=0;
+
+  /* late VideoPlayerController _controller;
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.network(
+        'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4')
+      ..initialize().then((_) {
+        // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
+        setState(() {});
+      });
+      _controller.play();
+  } */
 
   void _onItemTapped(int index) {
     setState(() {

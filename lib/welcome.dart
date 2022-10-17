@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:reddit_clone/redditVideo.dart';
+import 'package:reddit_clone/searchBar.dart';
 import 'drawer.dart';
 
 class Welcome extends StatefulWidget {
@@ -13,9 +15,9 @@ class Welcome extends StatefulWidget {
 
 class _WelcomeState extends State<Welcome> {
   Future getPop() async {
-    var data=jsonDecode(
-        (await http.get(Uri.parse("https://gateway.reddit.com/desktopapi/v1/subreddits/popular?geo_filter=TR&sort=hot&layout=card&forceGeopopular=true")))
-            .body);
+    var data = jsonDecode((await http.get(Uri.parse(
+            "https://gateway.reddit.com/desktopapi/v1/subreddits/popular?geo_filter=TR&sort=hot&layout=card&forceGeopopular=true")))
+        .body);
 
     return data;
     /* return (jsonDecode(
@@ -46,11 +48,50 @@ class _WelcomeState extends State<Welcome> {
       child: DefaultTabController(
         length: 2,
         child: Scaffold(
+          backgroundColor: const Color(0x00dae0e6), //dae0e6
           drawer: drawer(),
           appBar: AppBar(
+            backgroundColor: Colors.white,
+            title: TextField(
+              readOnly: true,
+              onTap: () {
+                Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (context) => SearchBar()));
+              },
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                    borderSide: BorderSide(
+                  color: Colors.grey.shade100,
+                )),
+                focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                  color: Colors.grey.shade100,
+                )),
+                enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                  color: Colors.grey.shade100,
+                )),
+                hintText: 'Search',
+                prefixIcon: Icon(Icons.search,color: Colors.black,),
+                fillColor: Colors.grey.shade100,
+                filled: true,
+                isDense: true,
+              ),
+            ),
+            actions: [
+              IconButton(
+                  onPressed: () {},
+                  icon: Icon(
+                    Icons.monetization_on_rounded,
+                    color: Colors.black,
+                  ))
+            ],
             leading: Builder(
               builder: (context) => IconButton(
-                icon: Icon(Icons.person),
+                icon: Icon(
+                  Icons.person,
+                  color: Colors.black,
+                ),
                 onPressed: () => Scaffold.of(context).openDrawer(),
               ),
             ),
@@ -77,31 +118,60 @@ class _WelcomeState extends State<Welcome> {
                     return ListView.builder(
                         itemCount: snapshot.data["postIds"].length,
                         itemBuilder: (context, index) {
-                          if(snapshot.data["posts"][snapshot.data["postIds"][index]]["belongsTo"]["type"]=="subreddit"){
+                          var post = snapshot.data["posts"]
+                              [snapshot.data["postIds"][index]];
+                          var subreddit = snapshot.data["subreddits"]
+                              [post["belongsTo"]["id"]];
+
+                          if (post["belongsTo"]["type"] == "subreddit") {
                             return Container(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    Text(snapshot.data["subreddits"][snapshot.data["posts"][snapshot.data["postIds"][index]]["belongsTo"]["id"]]["displayText"]),//snapshot.data["posts"][snapshot.data["postIds"][index]]["belongsTo"]["id"]
-                                    Text("Posted by u/" +
-                                        snapshot.data["posts"][snapshot.data["postIds"][index]]["author"] +
-                                        " • " +
-                                        getAgeFromEpoch(snapshot.data["posts"][snapshot.data["postIds"][index]]["created"])
-                                            .toString()),
-                                  ],
-                                ),
-                                Text(snapshot.data["posts"][snapshot.data["postIds"][index]]["title"]),
-                              ],
-                            ),
-                          );
-                          }else{
+                              color: Colors.white,
+                              margin: EdgeInsets.only(
+                                top: 5.0,
+                                bottom: 5.0,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Padding(
+                                        padding: EdgeInsets.all(10.0),
+                                        child: CircleAvatar(
+                                          backgroundImage: NetworkImage(
+                                              subreddit["communityIcon"] ??
+                                                  subreddit["icon"]["url"]),
+                                        ),
+                                      ), //Image.network(subreddit["communityIcon"] ?? subreddit["icon"]["url"],scale: 4,)
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            subreddit["displayText"],
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          Text("Posted by u/" +
+                                              post["author"] +
+                                              " • " +
+                                              getAgeFromEpoch(post["created"])
+                                                  .toString()),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  Text(post["title"]),
+                                  if (post["media"]["type"] == "image")
+                                    Image.network(post["media"]["content"]),
+                                  if (post["media"]["type"] == "video")
+                                    redditVideo(url: post["media"]["hlsUrl"]),
+                                ],
+                              ),
+                            );
+                          } else {
                             return Text("Rek");
                           }
-                          
                         });
                   }
                 },
